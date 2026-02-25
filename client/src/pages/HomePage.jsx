@@ -1,6 +1,7 @@
 // src/pages/HomePage.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 import { signOut } from "firebase/auth";
 import { auth } from "../auth/firebase";
 
@@ -11,7 +12,7 @@ const FEATURED_PRODUCTS = [
     name: "Adjustable Dumbbell Set",
     brand: "PowerFlex",
     category: "Equipment",
-    price: 12499,
+    price: 15999,
     originalPrice: 15999,
     rating: 4.8,
     reviews: 214,
@@ -270,106 +271,34 @@ export default function HomePage() {
       `}</style>
 
       {/* ── NAVBAR ── */}
-      <nav className="sticky top-0 z-40 bg-white border-b border-stone-200">
-        <div className="max-w-7xl mx-auto px-5 lg:px-10 h-15 flex items-center justify-between gap-4 py-3">
-          {/* Logo */}
-          <span className="font-['DM_Serif_Display'] text-xl text-stone-900 shrink-0">FitMart</span>
+      <Navbar
+        links={["Shop", "Plans", "Community"]}
+        variant="home"
+        onSearchToggle={() => {
+          setSearchOpen((p) => !p);
+          setSearchQuery("");
+        }}
+        onCartOpen={() => setCartOpen(true)}
+        cartCount={cartCount}
+        user={user}
+        menuOpen={menuOpen}
+        setMenuOpen={setMenuOpen}
+        onSignOut={handleSignOut}
+      />
 
-          {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center gap-6">
-            {["Shop", "Plans", "Community"].map((l) => (
-              <button key={l} className="text-sm text-stone-500 hover:text-stone-900 transition-colors">
-                {l}
-              </button>
-            ))}
-          </div>
-
-          {/* Right Actions */}
-          <div className="flex items-center gap-2 md:gap-3">
-            {/* Search */}
-            <button
-              onClick={() => { setSearchOpen((p) => !p); setSearchQuery(""); }}
-              className="p-2 text-stone-500 hover:text-stone-900 transition-colors"
-              aria-label="Search"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="7" /><path d="m16.5 16.5 4 4" />
-              </svg>
-            </button>
-
-            {/* Cart */}
-            <button
-              onClick={() => setCartOpen(true)}
-              className="relative p-2 text-stone-500 hover:text-stone-900 transition-colors"
-              aria-label="Cart"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <path d="M16 10a4 4 0 0 1-8 0" />
-              </svg>
-              {cartCount > 0 && (
-                <span className="absolute top-0.5 right-0.5 bg-stone-900 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-semibold">
-                  {cartCount}
-                </span>
-              )}
-            </button>
-
-            {/* User Menu */}
-            <div className="relative">
-              <button
-                onClick={() => setMenuOpen((p) => !p)}
-                className="hidden md:flex items-center gap-2 border border-stone-200 rounded-full px-3 py-1.5 hover:bg-stone-50 transition-colors"
-              >
-                <div className="w-5 h-5 rounded-full bg-stone-200 flex items-center justify-center">
-                  <span className="text-[10px] font-medium text-stone-600">
-                    {user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U"}
-                  </span>
-                </div>
-                <span className="text-xs text-stone-700 max-w-20 truncate">
-                  {user?.displayName || user?.email?.split("@")[0]}
-                </span>
-              </button>
-
-              {menuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-44 bg-white border border-stone-200 rounded-xl shadow-lg py-1 z-50">
-                  <div className="px-4 py-2 border-b border-stone-100">
-                    <p className="text-xs font-medium text-stone-900 truncate">{user?.displayName || "Account"}</p>
-                    <p className="text-[10px] text-stone-400 truncate">{user?.email}</p>
-                  </div>
-                  {["My Orders", "Subscriptions", "Settings"].map((item) => (
-                    <button key={item} className="w-full text-left text-xs text-stone-600 hover:bg-stone-50 px-4 py-2 transition-colors">
-                      {item}
-                    </button>
-                  ))}
-                  <div className="border-t border-stone-100 mt-1">
-                    <button
-                      onClick={handleSignOut}
-                      className="w-full text-left text-xs text-stone-500 hover:bg-stone-50 px-4 py-2 transition-colors"
-                    >
-                      Sign Out
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+      {/* Search Expand */}
+      <div className={`search-expand ${searchOpen ? "open" : ""} border-t border-stone-100`}>
+        <div className="max-w-7xl mx-auto px-5 lg:px-10 py-3">
+          <input
+            autoFocus={searchOpen}
+            type="text"
+            placeholder="Search products, brands…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full text-sm text-stone-800 placeholder-stone-300 bg-transparent focus:outline-none"
+          />
         </div>
-
-        {/* Search Expand */}
-        <div className={`search-expand ${searchOpen ? "open" : ""} border-t border-stone-100`}>
-          <div className="max-w-7xl mx-auto px-5 lg:px-10 py-3">
-            <input
-              autoFocus={searchOpen}
-              type="text"
-              placeholder="Search products, brands…"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full text-sm text-stone-800 placeholder-stone-300 bg-transparent focus:outline-none"
-            />
-          </div>
-        </div>
-      </nav>
+      </div>
 
       {/* ── HERO BANNER ── */}
       <section className="bg-stone-900 text-white">
@@ -627,6 +556,6 @@ export default function HomePage() {
           </div>
         )}
       </aside>
-    </div>
+    </div >
   );
 }

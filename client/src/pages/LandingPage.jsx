@@ -1,6 +1,7 @@
 // src/pages/LandingPage.jsx
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 
 const NAV_LINKS = ["Equipment", "Nutrition", "Programs", "About"];
 
@@ -109,77 +110,7 @@ export default function LandingPage() {
       `}</style>
 
       {/* ── NAVBAR ── */}
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${navOpaque ? "bg-white/95 backdrop-blur-sm border-b border-stone-200" : "bg-transparent"
-          }`}
-      >
-        <div className="max-w-7xl mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
-          <span
-            className="font-['DM_Serif_Display'] text-xl text-stone-900 tracking-tight cursor-pointer"
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          >
-            FitMart
-          </span>
-
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-8">
-            {NAV_LINKS.map((l) => (
-              <button
-                key={l}
-                className="nav-link text-sm text-stone-600 hover:text-stone-900 transition-colors"
-              >
-                {l}
-              </button>
-            ))}
-          </div>
-
-          <div className="hidden md:flex items-center gap-3">
-            <button
-              onClick={() => navigate("/auth")}
-              className="text-sm text-stone-600 hover:text-stone-900 transition-colors px-4 py-2"
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => navigate("/auth")}
-              className="text-sm bg-stone-900 text-white px-5 py-2 rounded-full hover:bg-stone-700 transition-colors"
-            >
-              Get Started
-            </button>
-          </div>
-
-          {/* Mobile Menu Toggle */}
-          <button
-            className="md:hidden text-stone-700"
-            onClick={() => setMenuOpen((p) => !p)}
-            aria-label="Menu"
-          >
-            <div className="w-6 flex flex-col gap-1.5">
-              <span className={`block h-px bg-stone-900 transition-all ${menuOpen ? "rotate-45 translate-y-2.5" : ""}`} />
-              <span className={`block h-px bg-stone-900 transition-all ${menuOpen ? "opacity-0" : ""}`} />
-              <span className={`block h-px bg-stone-900 transition-all ${menuOpen ? "-rotate-45 -translate-y-2" : ""}`} />
-            </div>
-          </button>
-        </div>
-
-        {/* Mobile Menu */}
-        {menuOpen && (
-          <div className="md:hidden bg-white border-t border-stone-100 px-6 py-4 flex flex-col gap-4">
-            {NAV_LINKS.map((l) => (
-              <button key={l} className="text-sm text-stone-700 text-left py-1">
-                {l}
-              </button>
-            ))}
-            <hr className="border-stone-100" />
-            <button
-              onClick={() => navigate("/auth")}
-              className="text-sm bg-stone-900 text-white px-5 py-2.5 rounded-full w-full"
-            >
-              Get Started
-            </button>
-          </div>
-        )}
-      </nav>
+      <Navbar links={NAV_LINKS} variant="landing" navOpaque={navOpaque} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
       {/* ── HERO ── */}
       <section
@@ -320,7 +251,7 @@ export default function LandingPage() {
                 desc: "Every supplement and product sourced direct from manufacturer with QR batch verification.",
               },
               {
-                icon: "⚡",
+                icon: "⚡︎",
                 title: "Mumbai-Speed Delivery",
                 desc: "24-hour fulfillment within MMR. Real-time tracking via WhatsApp and email.",
               },
@@ -412,8 +343,8 @@ export default function LandingPage() {
               <div
                 key={i}
                 className={`rounded-2xl p-8 flex flex-col gap-5 ${plan.highlight
-                    ? "bg-stone-900 text-white"
-                    : "bg-white border border-stone-200"
+                  ? "bg-stone-900 text-white"
+                  : "bg-white border border-stone-200"
                   }`}
               >
                 <div>
@@ -457,8 +388,8 @@ export default function LandingPage() {
                 <button
                   onClick={() => navigate("/auth")}
                   className={`text-sm py-2.5 rounded-full transition-colors ${plan.highlight
-                      ? "bg-white text-stone-900 hover:bg-stone-100"
-                      : "border border-stone-300 text-stone-700 hover:bg-stone-50"
+                    ? "bg-white text-stone-900 hover:bg-stone-100"
+                    : "border border-stone-300 text-stone-700 hover:bg-stone-50"
                     }`}
                 >
                   {plan.cta}
