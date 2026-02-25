@@ -1,4 +1,4 @@
-# 🏋️ FitMart — Online Fitness & Nutrition E-Commerce Platform
+# 🏋️ FitMart: Online Fitness & Nutrition E-Commerce Platform
 
 > A comprehensive, high-performance B2C e-commerce ecosystem combining premium fitness hardware, specialized nutrition products, and digital coaching — all in one platform.
 

@@ -1,0 +1,446 @@
+// src/pages/Authentication.jsx
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  sendPasswordResetEmail,
+  updateProfile,
+} from "firebase/auth";
+import { auth } from "../auth/firebase";
+
+const GoogleIcon = () => (
+  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05" />
+    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+  </svg>
+);
+
+export default function Authentication() {
+  const navigate = useNavigate();
+  const [mode, setMode] = useState("signin"); // "signin" | "signup" | "reset"
+  const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => setVisible(true), 80);
+  }, []);
+
+  const handleChange = (e) => {
+    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+    setError("");
+  };
+
+  const parseError = (code) => {
+    const map = {
+      "auth/user-not-found": "No account found with this email.",
+      "auth/wrong-password": "Incorrect password.",
+      "auth/email-already-in-use": "An account with this email already exists.",
+      "auth/weak-password": "Password must be at least 6 characters.",
+      "auth/invalid-email": "Please enter a valid email address.",
+      "auth/too-many-requests": "Too many attempts. Try again later.",
+      "auth/popup-closed-by-user": "Sign-in popup was closed.",
+      "auth/invalid-credential": "Invalid email or password.",
+    };
+    return map[code] || "Something went wrong. Please try again.";
+  };
+
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, form.email, form.password);
+      navigate("/home");
+    } catch (err) {
+      setError(parseError(err.code));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+    if (form.password !== form.confirm) {
+      setError("Passwords do not match.");
+      return;
+    }
+    if (form.password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, form.email, form.password);
+      if (form.name.trim()) {
+        await updateProfile(cred.user, { displayName: form.name.trim() });
+      }
+      navigate("/home");
+    } catch (err) {
+      setError(parseError(err.code));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogle = async () => {
+    setLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      navigate("/home");
+    } catch (err) {
+      setError(parseError(err.code));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReset = async (e) => {
+    e.preventDefault();
+    if (!form.email) {
+      setError("Please enter your email address.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, form.email);
+      setResetSent(true);
+    } catch (err) {
+      setError(parseError(err.code));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const switchMode = (m) => {
+    setMode(m);
+    setError("");
+    setResetSent(false);
+    setForm({ name: "", email: "", password: "", confirm: "" });
+  };
+
+  return (
+    <div className="min-h-screen bg-stone-50 font-['DM_Sans',sans-serif] flex">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap');
+        .auth-panel { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .auth-panel.visible { opacity: 1; transform: translateY(0); }
+        .input-field { transition: border-color 0.2s ease; }
+        .input-field:focus { outline: none; border-color: #1c1917; }
+        .mode-tab { transition: color 0.2s ease, border-color 0.2s ease; }
+      `}</style>
+
+      {/* Left Panel — Branding (hidden on mobile) */}
+      <div className="hidden lg:flex flex-col justify-between w-2/5 bg-stone-900 p-12">
+        <button
+          onClick={() => navigate("/")}
+          className="font-['DM_Serif_Display'] text-2xl text-white tracking-tight"
+        >
+          FitMart
+        </button>
+
+        <div>
+          <h2 className="font-['DM_Serif_Display'] text-4xl xl:text-5xl text-white leading-tight mb-5">
+            Your fitness ecosystem,{" "}
+            <em className="not-italic text-stone-400">all in one place.</em>
+          </h2>
+          <p className="text-sm text-stone-500 leading-relaxed max-w-xs">
+            Equipment, nutrition, and digital coaching — curated for Mumbai's fitness community.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            { v: "50K+", l: "Members" },
+            { v: "200+", l: "Products" },
+            { v: "100%", l: "Authentic" },
+            { v: "4.9★", l: "Rating" },
+          ].map((s, i) => (
+            <div key={i} className="bg-stone-800 rounded-xl p-4">
+              <div className="font-['DM_Serif_Display'] text-2xl text-white">{s.v}</div>
+              <div className="text-xs text-stone-500 mt-0.5">{s.l}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Right Panel — Auth Form */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+        {/* Mobile logo */}
+        <button
+          onClick={() => navigate("/")}
+          className="lg:hidden font-['DM_Serif_Display'] text-2xl text-stone-900 mb-10"
+        >
+          FitMart
+        </button>
+
+        <div className={`auth-panel ${visible ? "visible" : ""} w-full max-w-sm`}>
+
+          {/* Mode Tabs */}
+          {mode !== "reset" && (
+            <div className="flex border-b border-stone-200 mb-8">
+              {["signin", "signup"].map((m) => (
+                <button
+                  key={m}
+                  onClick={() => switchMode(m)}
+                  className={`mode-tab flex-1 py-3 text-sm font-medium border-b-2 -mb-px transition-all ${mode === m
+                    ? "border-stone-900 text-stone-900"
+                    : "border-transparent text-stone-400 hover:text-stone-600"
+                    }`}
+                >
+                  {m === "signin" ? "Sign In" : "Create Account"}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* ── SIGN IN ── */}
+          {mode === "signin" && (
+            <form onSubmit={handleSignIn} className="flex flex-col gap-4">
+              <div>
+                <label className="block text-xs text-stone-500 mb-1.5 tracking-wide uppercase">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  required
+                  placeholder="you@example.com"
+                  className="input-field w-full border border-stone-200 bg-white rounded-lg px-4 py-3 text-sm text-stone-900 placeholder-stone-300"
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="text-xs text-stone-500 tracking-wide uppercase">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => switchMode("reset")}
+                    className="text-xs text-stone-400 hover:text-stone-600 transition-colors"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <input
+                  type="password"
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                  placeholder="••••••••"
+                  className="input-field w-full border border-stone-200 bg-white rounded-lg px-4 py-3 text-sm text-stone-900 placeholder-stone-300"
+                />
+              </div>
+
+              {error && (
+                <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                  {error}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-stone-900 text-white text-sm py-3 rounded-lg hover:bg-stone-700 transition-colors disabled:opacity-50 mt-1"
+              >
+                {loading ? "Signing in…" : "Sign In"}
+              </button>
+
+              <div className="relative flex items-center gap-3 my-1">
+                <div className="flex-1 h-px bg-stone-200" />
+                <span className="text-xs text-stone-400">or</span>
+                <div className="flex-1 h-px bg-stone-200" />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleGoogle}
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2.5 border border-stone-200 bg-white text-stone-700 text-sm py-3 rounded-lg hover:bg-stone-50 transition-colors disabled:opacity-50"
+              >
+                <GoogleIcon />
+                Continue with Google
+              </button>
+            </form>
+          )}
+
+          {/* ── SIGN UP ── */}
+          {mode === "signup" && (
+            <form onSubmit={handleSignUp} className="flex flex-col gap-4">
+              <div>
+                <label className="block text-xs text-stone-500 mb-1.5 tracking-wide uppercase">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  placeholder="Arjun Mehta"
+                  className="input-field w-full border border-stone-200 bg-white rounded-lg px-4 py-3 text-sm text-stone-900 placeholder-stone-300"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-stone-500 mb-1.5 tracking-wide uppercase">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  required
+                  placeholder="you@example.com"
+                  className="input-field w-full border border-stone-200 bg-white rounded-lg px-4 py-3 text-sm text-stone-900 placeholder-stone-300"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-stone-500 mb-1.5 tracking-wide uppercase">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                  placeholder="Minimum 6 characters"
+                  className="input-field w-full border border-stone-200 bg-white rounded-lg px-4 py-3 text-sm text-stone-900 placeholder-stone-300"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-stone-500 mb-1.5 tracking-wide uppercase">
+                  Confirm Password
+                </label>
+                <input
+                  type="password"
+                  name="confirm"
+                  value={form.confirm}
+                  onChange={handleChange}
+                  required
+                  placeholder="••••••••"
+                  className="input-field w-full border border-stone-200 bg-white rounded-lg px-4 py-3 text-sm text-stone-900 placeholder-stone-300"
+                />
+              </div>
+
+              {error && (
+                <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                  {error}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-stone-900 text-white text-sm py-3 rounded-lg hover:bg-stone-700 transition-colors disabled:opacity-50 mt-1"
+              >
+                {loading ? "Creating account…" : "Create Account"}
+              </button>
+
+              <div className="relative flex items-center gap-3 my-1">
+                <div className="flex-1 h-px bg-stone-200" />
+                <span className="text-xs text-stone-400">or</span>
+                <div className="flex-1 h-px bg-stone-200" />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleGoogle}
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2.5 border border-stone-200 bg-white text-stone-700 text-sm py-3 rounded-lg hover:bg-stone-50 transition-colors disabled:opacity-50"
+              >
+                <GoogleIcon />
+                Continue with Google
+              </button>
+
+              <p className="text-[11px] text-stone-400 text-center leading-relaxed">
+                By creating an account you agree to our{" "}
+                <span className="underline cursor-pointer">Terms</span> and{" "}
+                <span className="underline cursor-pointer">Privacy Policy</span>.
+              </p>
+            </form>
+          )}
+
+          {/* ── RESET PASSWORD ── */}
+          {mode === "reset" && (
+            <div>
+              <button
+                onClick={() => switchMode("signin")}
+                className="flex items-center gap-1.5 text-xs text-stone-400 hover:text-stone-600 transition-colors mb-6"
+              >
+                ← Back to Sign In
+              </button>
+
+              <h3 className="font-['DM_Serif_Display'] text-2xl text-stone-900 mb-2">
+                Reset your password
+              </h3>
+              <p className="text-sm text-stone-500 mb-7 leading-relaxed">
+                Enter your email and we'll send you a reset link.
+              </p>
+
+              {resetSent ? (
+                <div className="bg-stone-100 border border-stone-200 rounded-xl px-5 py-4 text-center">
+                  <p className="text-sm text-stone-700 font-medium mb-1">Check your inbox</p>
+                  <p className="text-xs text-stone-500">
+                    Reset link sent to <span className="font-medium">{form.email}</span>
+                  </p>
+                  <button
+                    onClick={() => switchMode("signin")}
+                    className="mt-4 text-xs text-stone-500 underline"
+                  >
+                    Back to Sign In
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleReset} className="flex flex-col gap-4">
+                  <div>
+                    <label className="block text-xs text-stone-500 mb-1.5 tracking-wide uppercase">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      required
+                      placeholder="you@example.com"
+                      className="input-field w-full border border-stone-200 bg-white rounded-lg px-4 py-3 text-sm text-stone-900 placeholder-stone-300"
+                    />
+                  </div>
+
+                  {error && (
+                    <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                      {error}
+                    </p>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-stone-900 text-white text-sm py-3 rounded-lg hover:bg-stone-700 transition-colors disabled:opacity-50"
+                  >
+                    {loading ? "Sending…" : "Send Reset Link"}
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
