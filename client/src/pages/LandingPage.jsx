@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
-const NAV_LINKS = ["Equipment", "Nutrition", "Programs", "About"];
+const NAV_LINKS = [];
 
 const STATS = [
   { value: "50K+", label: "Active Members" },
@@ -21,6 +21,7 @@ const CATEGORIES = [
     text: "text-white",
     sub: "text-stone-400",
     btn: "border-stone-600 text-stone-300 hover:bg-stone-800",
+    filter: "Equipment",
   },
   {
     title: "Certified Nutrition",
@@ -30,6 +31,7 @@ const CATEGORIES = [
     text: "text-stone-900",
     sub: "text-stone-500",
     btn: "border-stone-300 text-stone-700 hover:bg-stone-200",
+    filter: "Nutrition",
   },
   {
     title: "Digital Coaching",
@@ -39,6 +41,28 @@ const CATEGORIES = [
     text: "text-stone-900",
     sub: "text-stone-500",
     btn: "border-stone-400 text-stone-700 hover:bg-stone-300",
+    filter: "Programs",
+  },
+];
+
+const PROGRAMS = [
+  {
+    name: "Weight Loss",
+    duration: "12 Weeks",
+    desc: "Caloric-deficit nutrition + cardio-focused programming",
+    level: "Beginner to Intermediate",
+  },
+  {
+    name: "Muscle Building",
+    duration: "16 Weeks",
+    desc: "Progressive overload training + protein-optimized meal plans",
+    level: "Intermediate to Advanced",
+  },
+  {
+    name: "Mobility & Recovery",
+    duration: "8 Weeks",
+    desc: "Flexibility-first programming, ideal for desk workers",
+    level: "All Levels",
   },
 ];
 
@@ -71,6 +95,11 @@ export default function LandingPage() {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [visible, setVisible] = useState(false);
 
+  // Refs for sections
+  const categoriesRef = useRef(null);
+  const programsRef = useRef(null);
+  const aboutRef = useRef(null);
+
   useEffect(() => {
     setTimeout(() => setVisible(true), 100);
     const handleScroll = () => setScrollY(window.scrollY);
@@ -84,6 +113,24 @@ export default function LandingPage() {
     }, 4000);
     return () => clearInterval(timer);
   }, []);
+
+  // Function to handle navigation clicks
+  const handleNavClick = (link) => {
+    if (link.section === "categories") {
+      categoriesRef.current?.scrollIntoView({ behavior: "smooth" });
+    } else if (link.section === "programs") {
+      programsRef.current?.scrollIntoView({ behavior: "smooth" });
+    } else if (link.section === "about") {
+      aboutRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+    setMenuOpen(false); // Close mobile menu after clicking
+  };
+
+  // Function to handle category card clicks
+  const handleCategoryClick = (category) => {
+    // Navigate to home page with category filter
+    navigate("/home", { state: { category: category.filter } });
+  };
 
   const navOpaque = scrollY > 60;
 
@@ -107,10 +154,18 @@ export default function LandingPage() {
         @keyframes tFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .nav-link::after { content: ''; display: block; width: 0; height: 1px; background: currentColor; transition: width 0.3s ease; }
         .nav-link:hover::after { width: 100%; }
+        .section-link { cursor: pointer; }
       `}</style>
 
       {/* ── NAVBAR ── */}
-      <Navbar links={NAV_LINKS} variant="landing" navOpaque={navOpaque} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+      <Navbar
+        links={NAV_LINKS}
+        variant="landing"
+        navOpaque={navOpaque}
+        menuOpen={menuOpen}
+        setMenuOpen={setMenuOpen}
+        onNavClick={handleNavClick}
+      />
 
       {/* ── HERO ── */}
       <section
@@ -170,7 +225,7 @@ export default function LandingPage() {
               </button>
               <button
                 onClick={() => {
-                  document.getElementById("categories")?.scrollIntoView({ behavior: "smooth" });
+                  categoriesRef.current?.scrollIntoView({ behavior: "smooth" });
                 }}
                 className="text-sm text-stone-700 px-8 py-3.5 rounded-full border border-stone-300 hover:bg-stone-100 transition-colors"
               >
@@ -198,7 +253,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── CATEGORIES ── */}
-      <section id="categories" className="py-24 bg-white">
+      <section id="categories" ref={categoriesRef} className="py-24 bg-white scroll-mt-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-10">
           <div className="mb-14">
             <p className="text-xs tracking-[0.2em] uppercase text-stone-400 mb-3">
@@ -214,7 +269,7 @@ export default function LandingPage() {
               <div
                 key={i}
                 className={`cat-card rounded-2xl p-8 md:p-10 flex flex-col justify-between min-h-72 cursor-pointer ${c.bg}`}
-                onClick={() => navigate("/auth")}
+                onClick={() => handleCategoryClick(c)}
               >
                 <div>
                   <span
@@ -231,8 +286,48 @@ export default function LandingPage() {
                 </div>
                 <button
                   className={`mt-8 self-start text-xs border px-5 py-2.5 rounded-full transition-colors ${c.btn}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCategoryClick(c);
+                  }}
                 >
                   Browse →
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PROGRAMS SECTION ── */}
+      <section id="programs" ref={programsRef} className="py-24 bg-stone-50 scroll-mt-20">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10">
+          <div className="mb-14">
+            <p className="text-xs tracking-[0.2em] uppercase text-stone-400 mb-3">
+              Digital Coaching
+            </p>
+            <h2 className="font-['DM_Serif_Display'] text-4xl md:text-5xl text-stone-900">
+              Our programs
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {PROGRAMS.map((program, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-2xl p-8 border border-stone-200 hover:shadow-lg transition-all cursor-pointer"
+                onClick={() => navigate("/auth")}
+              >
+                <span className="text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-3 block">
+                  {program.level}
+                </span>
+                <h3 className="font-['DM_Serif_Display'] text-2xl text-stone-900 mb-2">
+                  {program.name}
+                </h3>
+                <p className="text-sm text-stone-500 mb-4">{program.duration}</p>
+                <p className="text-sm text-stone-600 leading-relaxed mb-6">{program.desc}</p>
+                <button className="text-xs border border-stone-300 text-stone-700 px-5 py-2.5 rounded-full hover:bg-stone-900 hover:text-white hover:border-stone-900 transition-all">
+                  Learn More →
                 </button>
               </div>
             ))}
@@ -271,8 +366,37 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── ABOUT SECTION ── */}
+      <section id="about" ref={aboutRef} className="py-24 bg-white scroll-mt-20">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10">
+          <div className="max-w-3xl mx-auto text-center">
+            <p className="text-xs tracking-[0.2em] uppercase text-stone-400 mb-3">
+              About FitMart
+            </p>
+            <h2 className="font-['DM_Serif_Display'] text-4xl md:text-5xl text-stone-900 mb-8">
+              Built for Mumbai's fitness community
+            </h2>
+            <p className="text-lg text-stone-600 leading-relaxed mb-12">
+              We started FitMart because we believe fitness shouldn't be complicated.
+              By bringing together equipment, nutrition, and coaching under one roof,
+              we've created Mumbai's first integrated fitness ecosystem.
+            </p>
+            <div className="grid grid-cols-2 gap-8 max-w-2xl mx-auto">
+              <div className="text-center">
+                <div className="font-['DM_Serif_Display'] text-3xl text-stone-900">2024</div>
+                <p className="text-xs text-stone-500">Founded</p>
+              </div>
+              <div className="text-center">
+                <div className="font-['DM_Serif_Display'] text-3xl text-stone-900">1000+</div>
+                <p className="text-xs text-stone-500">Happy Customers</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── TESTIMONIALS ── */}
-      <section className="py-24 bg-white">
+      <section className="py-24 bg-stone-50">
         <div className="max-w-7xl mx-auto px-6 lg:px-10">
           <div className="max-w-2xl mx-auto text-center">
             <p className="text-xs tracking-[0.2em] uppercase text-stone-400 mb-10">
@@ -307,7 +431,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── SUBSCRIPTIONS TEASER ── */}
-      <section className="py-24 bg-stone-50">
+      <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6 lg:px-10">
           <div className="text-center mb-14">
             <p className="text-xs tracking-[0.2em] uppercase text-stone-400 mb-3">
@@ -342,10 +466,11 @@ export default function LandingPage() {
             ].map((plan, i) => (
               <div
                 key={i}
-                className={`rounded-2xl p-8 flex flex-col gap-5 ${plan.highlight
-                  ? "bg-stone-900 text-white"
-                  : "bg-white border border-stone-200"
+                className={`rounded-2xl p-8 flex flex-col gap-5 cursor-pointer transition-all hover:shadow-lg ${plan.highlight
+                  ? "bg-stone-900 text-white hover:bg-stone-800"
+                  : "bg-white border border-stone-200 hover:border-stone-300"
                   }`}
+                onClick={() => navigate("/auth")}
               >
                 <div>
                   <p
@@ -386,7 +511,10 @@ export default function LandingPage() {
                   ))}
                 </ul>
                 <button
-                  onClick={() => navigate("/auth")}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate("/auth");
+                  }}
                   className={`text-sm py-2.5 rounded-full transition-colors ${plan.highlight
                     ? "bg-white text-stone-900 hover:bg-stone-100"
                     : "border border-stone-300 text-stone-700 hover:bg-stone-50"
@@ -427,7 +555,15 @@ export default function LandingPage() {
           </p>
           <div className="flex gap-6">
             {["Privacy", "Terms", "Contact"].map((l) => (
-              <button key={l} className="text-xs text-stone-600 hover:text-stone-400 transition-colors">
+              <button
+                key={l}
+                className="text-xs text-stone-600 hover:text-stone-400 transition-colors"
+                onClick={() => {
+                  if (l === "Contact") {
+                    aboutRef.current?.scrollIntoView({ behavior: "smooth" });
+                  }
+                }}
+              >
                 {l}
               </button>
             ))}

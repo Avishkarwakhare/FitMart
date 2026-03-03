@@ -1,3 +1,4 @@
+// src/components/Navbar.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -14,11 +15,29 @@ export default function Navbar({
   menuOpen = false,
   setMenuOpen,
   onSignOut,
+  onNavClick, // New prop for handling navigation clicks
 }) {
   const navigate = useNavigate();
 
   const basePos = variant === "landing" ? "fixed top-0 left-0 right-0 z-50" : "sticky top-0 z-40";
   const bgClass = variant === "landing" ? (navOpaque ? "bg-white/95 backdrop-blur-sm border-b border-stone-200" : "bg-transparent") : "bg-white border-b border-stone-200";
+
+  // Handle link click
+  const handleLinkClick = (link) => {
+    if (onNavClick) {
+      onNavClick(link);
+    } else {
+      // Fallback for home variant or when onNavClick isn't provided
+      if (typeof link === 'object' && link.section) {
+        // If it's an object with section, try to scroll to that section
+        const element = document.getElementById(link.section);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+    }
+    if (setMenuOpen) setMenuOpen(false);
+  };
 
   return (
     <nav className={`w-full ${basePos} transition-all duration-300 ${bgClass}`}>
@@ -32,9 +51,13 @@ export default function Navbar({
 
         {/* Desktop Links */}
         <div className="hidden md:flex items-center gap-6">
-          {links.map((l) => (
-            <button key={l} className="text-sm text-stone-500 hover:text-stone-900 transition-colors">
-              {l}
+          {links.map((link, i) => (
+            <button
+              key={i}
+              onClick={() => handleLinkClick(link)}
+              className="text-sm text-stone-500 hover:text-stone-900 transition-colors"
+            >
+              {typeof link === 'object' ? link.name : link}
             </button>
           ))}
         </div>
@@ -138,12 +161,17 @@ export default function Navbar({
           )}
         </div>
       </div>
+
       {/* Mobile Menu */}
       {variant === "landing" && menuOpen && (
         <div className="md:hidden bg-white border-t border-stone-100 px-6 py-4 flex flex-col gap-4">
-          {links.map((l) => (
-            <button key={l} className="text-sm text-stone-700 text-left py-1">
-              {l}
+          {links.map((link, i) => (
+            <button
+              key={i}
+              onClick={() => handleLinkClick(link)}
+              className="text-sm text-stone-700 text-left py-1"
+            >
+              {typeof link === 'object' ? link.name : link}
             </button>
           ))}
           <hr className="border-stone-100" />
