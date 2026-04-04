@@ -69,6 +69,14 @@ app.use(
 
 app.use(helmet());
 app.use(express.json());
+// Disable automatic ETag generation to avoid conditional 304 responses
+app.disable('etag');
+
+// Ensure API responses are not served from client caches (avoid 304 from conditional requests)
+app.use('/api', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store');
+  next();
+});
 app.use("/api", apiLimiter);
 app.use("/api/payment/create-order", paymentLimiter);
 app.use("/api/payment/verify-payment", paymentLimiter);
