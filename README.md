@@ -63,7 +63,7 @@
 
 **FitMart** is a full-stack e-commerce web application built with the MERN stack. It's designed as both a **learning resource** and a **real-world starting point** for building modern storefronts.
 
-The project covers end-to-end functionality including:
+The project covers end-to-end functionality includes:
 
 - 🔐 User authentication via Firebase (Email/Password + Google Sign-In)
 - 🛒 Cart management with real-time stock reservation logic
