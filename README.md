@@ -8,7 +8,7 @@
 
 # FitMart
 
-### *Your All-in-One Fitness & Nutrition E-Commerce Platform*
+### *Your All-in-One Fitness & Nutrition E-Commerce Platform where you can find things according to you*
 
 > A full-stack MERN e-commerce application combining premium fitness gear, nutrition products, and seamless payments — built for learning, collaboration, and real-world use.
 
